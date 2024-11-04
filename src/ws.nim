@@ -171,6 +171,8 @@ proc newWebSocket*(
   var res = await client.get($uri)
   let hasUpgrade = res.headers.getOrDefault("Upgrade")
   if hasUpgrade.toLowerAscii() != "websocket":
+    client.close()
+    ws.tcpSocket.close()
     raise newException(
       WebSocketFailedUpgradeError,
       &"Failed to Upgrade (Possibly Connected to non-WebSocket url)"
@@ -180,6 +182,8 @@ proc newWebSocket*(
     if resProtocol in protocols:
       ws.protocol = resProtocol
     else:
+      client.close()
+      ws.tcpSocket.close()
       raise newException(
         WebSocketProtocolMismatchError,
         &"Protocol mismatch (expected: {protocols}, got: {resProtocol})"
