@@ -120,10 +120,12 @@ proc newWebSocket*(
 
 proc newWebSocket*(
   url: string,
-  protocols: seq[string] = @[]
+  protocols: seq[string] = @[],
+  headers: seq[(string, string)] = @[],
 ): Future[WebSocket] {.async.} =
   ## Creates a new WebSocket connection,
   ## protocol is optional, "" means no protocol.
+  ## headers is optional
   var ws = WebSocket()
   ws.masked = true
   ws.tcpSocket = newAsyncSocket()
@@ -160,6 +162,10 @@ proc newWebSocket*(
     "Sec-WebSocket-Key": secKey,
     # "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
   })
+
+  for header in headers:
+    client.headers[header[0]] = header[1]
+
   if protocols.len > 0:
     client.headers["Sec-WebSocket-Protocol"] = protocols.join(", ")
   var res = await client.get($uri)
